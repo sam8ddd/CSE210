@@ -5,14 +5,14 @@ class Program
     static void Main(string[] args)
     {
         Random randomGenerator = new Random();
-        int magic = randomGenerator.Next(1,11);
+        int magic = randomGenerator.Next(1,101);
 
-        int guess = 999799;
+        int guess;
 
         do
         {
         System.Console.Write("What is your guess? ");
-        string guessStr = System.Console.ReadLine();
+        string guessStr = Console.ReadLine();
         guess = int.Parse(guessStr);
 
         if (guess == magic)
