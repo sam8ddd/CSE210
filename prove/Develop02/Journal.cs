@@ -23,6 +23,8 @@ public class Journal
     {
         System.Console.WriteLine("What is the filename?");
         string fileName = System.Console.ReadLine();
+        System.Console.WriteLine("What is YOUR name, friend?");
+        string userName = System.Console.ReadLine();
 
         using (StreamWriter outputFile = new StreamWriter(fileName))
         foreach(Entry entry in entries)
@@ -32,15 +34,17 @@ public class Journal
             outputFile.WriteLine(currentEntry[0]);
             outputFile.WriteLine(currentEntry[1]);
             outputFile.WriteLine(currentEntry[2]);
+            outputFile.WriteLine(userName);
         }
     }
 
     public void LoadJournal(List<string> importedLines)
     {
-        for(int i = 0; i*3 < importedLines.Count; i++)
+        for(int i = 0; i*4 < importedLines.Count; i++)
         {
-            Entry importedEntry = new Entry(importedLines[3*i],importedLines[3*i+1],importedLines[3*i+2]);
+            Entry importedEntry = new Entry(importedLines[4*i],importedLines[4*i+1],importedLines[4*i+2]);
             entries.Add(importedEntry);
         }
+        System.Console.WriteLine($"\nWelcome back, {importedLines[3]}. I'm glad to see you again!\n");
     }
 }

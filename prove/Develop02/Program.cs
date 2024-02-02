@@ -12,7 +12,7 @@ class Program
         System.Console.WriteLine("Welcome to the Journal Program! :)");
         do
         {
-            if (menuOption != "2")
+            if (menuOption != "2" && menuOption != "3")
             {
                 Console.Clear();
             }
