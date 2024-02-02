@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.VisualBasic;
 
 public class Journal
@@ -12,25 +13,32 @@ public class Journal
         }
     }
 
-    public List<string> ExportJournal()
+    public void AddEntry()
     {
-        List<string> journalString = new List<string>();
+        Entry newEntry = new Entry();
+        entries.Add(newEntry);
+    }
+
+    public void ExportJournal()
+    {
+        System.Console.WriteLine("What is the filename?");
+        string fileName = System.Console.ReadLine();
+
+        using (StreamWriter outputFile = new StreamWriter(fileName))
         foreach(Entry entry in entries)
         {
-            List<string> entryData = entry.ExportEntry();
-            journalString.Add(entryData[0]);
-            journalString.Add(entryData[1]);
-            journalString.Add(entryData[2]);
+            List<string> currentEntry = entry.ExportEntry();
+            System.Console.WriteLine($"currentEntry: {currentEntry}");
+            outputFile.WriteLine(currentEntry[0]);
+            outputFile.WriteLine(currentEntry[1]);
+            outputFile.WriteLine(currentEntry[2]);
         }
-        return journalString;
     }
 
     public void LoadJournal(List<string> importedLines)
     {
         for(int i = 0; i*3 < importedLines.Count; i++)
         {
-            System.Console.WriteLine($"importedLines.Count: {importedLines.Count}");
-            System.Console.WriteLine($"i: {i}");
             Entry importedEntry = new Entry(importedLines[3*i],importedLines[3*i+1],importedLines[3*i+2]);
             entries.Add(importedEntry);
         }
