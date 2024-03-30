@@ -7,6 +7,7 @@ class Program
     static void Main(string[] args)
     {
         /* TO DO:
+         fix display
          add focus time functionality
          repeated functionality
          make today actually today (TimeDate)
