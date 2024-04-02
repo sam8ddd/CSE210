@@ -20,27 +20,25 @@ class Task
         isCompleted = false;
     }
 
-    public void Complete()
+    public virtual void Complete(int day)
     {
         isCompleted = true;
     }
 
-    public virtual void Display()
+    public int getTimeBlock()
     {
-        if (isCompleted) {Console.WriteLine($"[X] {name}: {desc}");}
-        else{Console.WriteLine($"[ ] {name}: {desc}");}
+        return time;
     }
 
-    public bool DisplayIfOccupied(int slot)
+    public virtual void Display(int day)
     {
-        if (slot == time)
+        if (isCompleted)
         {
-            Display();
-            return true;
+            Console.WriteLine($"[X] {name}: {desc}");
         }
         else
         {
-            return false;
+            Console.WriteLine($"[ ] {name}: {desc}");
         }
     }
 }

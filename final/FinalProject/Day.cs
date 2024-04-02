@@ -1,4 +1,5 @@
 using System.Diagnostics.Contracts;
+using System.IO.Compression;
 
 class Day
 {
@@ -7,6 +8,7 @@ class Day
     private List<Task> tasks;
     private List<string> daysList = new List<string>(){"SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"};
     private List<int> occupiedTimes;
+    public int dayIdx;
 
     public Day()
     {
@@ -34,7 +36,7 @@ class Day
         return tasks;
     }
 
-    public void ShowDay(int today)
+    public void ShowDay(int today, List<RepeatedTask> repeatedTasks, List<RepeatedEvent> repeatedEvents)
     {
         bool wasOccupied;
         bool activeFocusTime = false;
@@ -42,6 +44,9 @@ class Day
         System.Console.WriteLine($"\n~ {daysList[today]}'S SCHEDULE: ~");
         for (int i=24; i<=95; i++)
         {
+            wasOccupied = false;
+
+            // check to see if there is an active focus time
             for (int focus = 0; focus<focusTimes.Count; focus++)
             {
                 if (focusTimes[focus].GetStartTime() <= i && focusTimes[focus].GetEndTime() >= i)
@@ -59,11 +64,21 @@ class Day
             PrintLineIntro(i,activeFocusTime,activeFocusTimeId);
 
             // populate the schedule with tasks first
-            wasOccupied = false;
             foreach(Task task in tasks)
             {
-                if (task.DisplayIfOccupied(i))
+                if (task.getTimeBlock() == i)
                 {
+                    task.Display(today);
+                    wasOccupied = true;
+                }
+            }
+
+            // then populate with repeated tasks
+            foreach(RepeatedTask task in repeatedTasks)
+            {
+                if (task.GetStartDay() <= today && task.GetEndDay() >= today && task.getTimeBlock() == i)
+                {
+                    task.Display(today);
                     wasOccupied = true;
                 }
             }
@@ -88,6 +103,25 @@ class Day
                 }
             }
 
+            // then with repeated events
+            foreach(RepeatedEvent thisEvent in repeatedEvents)
+            {
+                if (today >= thisEvent.GetStartDay() && today <= thisEvent.GetEndDay() && i == thisEvent.getStartTime())
+                {
+                    displayLines = thisEvent.GetDisplayLines();
+
+                    System.Console.WriteLine(displayLines[0]);
+                    for (int j=1; j<displayLines.Count; j++)
+                    {
+                        i++;
+                        PrintLineIntro(i,activeFocusTime,activeFocusTimeId);
+                        System.Console.WriteLine(displayLines[j]);
+                    }
+
+                    wasOccupied = true;
+                }
+            }
+
             // if nothing to write on this line
             if (activeFocusTime && !wasOccupied)
             {
@@ -95,17 +129,37 @@ class Day
                 {
                     Console.WriteLine(focusTimes[activeFocusTimeId].GetName());
                 }
+                else
+                {
+                    System.Console.Write("\n");
+                }
             }
-            else if (i%4==0 && !wasOccupied){Console.WriteLine(" -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -");}
-            else if(!wasOccupied){Console.Write("\n");}
+            else if (i%4==0 && !wasOccupied)
+            {
+                Console.WriteLine(" -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -");
+            }
+            else if(!wasOccupied)
+            {
+                Console.Write("\n");
+            }
         }
     }
 
     private void PrintLineIntro(int i, bool activeFocusTime, int activeFocusTimeId)
     {
-        if (i<40 && i%4==0){Console.Write(" ");} // so 9:00 and 10:00 line up
-        if (i%4==0){Console.Write($"{i/4}:00 - ");} // if on the hour
-        else{Console.Write("      - ");} // if not on the hour
+        if (i<40 && i%4==0)
+        {
+            Console.Write(" "); // so 9:00 and 10:00 line up
+        }
+        if (i%4==0)
+        {
+            Console.Write($"{i/4}:00 - "); // if on the hour
+        }
+        else
+        {
+            Console.Write("      - "); // if not on the hour
+        }
+
         if (activeFocusTime)
         {
             if (focusTimes[activeFocusTimeId].GetStartTime() <= i && focusTimes[activeFocusTimeId].GetEndTime() >= i)
@@ -119,6 +173,7 @@ class Day
     {
         bool invalidTime = true;
         int timeBlock;
+
         do
         {
             Console.Write("Please select a time (eg 17:15): ");
@@ -126,10 +181,22 @@ class Day
             string[] timeSplit = rawTimeChosen.Split(":");
             int hours = int.Parse(timeSplit[0]);
             int minutes;
-            if (int.Parse(timeSplit[1]) < 15) {minutes = 0;}
-            else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30) {minutes = 1;}
-            else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45) {minutes = 2;}
-            else {minutes = 3;}
+            if (int.Parse(timeSplit[1]) < 15)
+            {
+                minutes = 0;
+            }
+            else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30)
+            {
+                minutes = 1;
+            }
+            else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45)
+            {
+                minutes = 2;
+            }
+            else
+            {
+                minutes = 3;
+            }
             timeBlock = 4*hours + minutes;
 
             if (!timeIsOccupied(timeBlock))
@@ -147,6 +214,11 @@ class Day
         occupiedTimes.Add(timeBlock);
     }
 
+    public void addToOccupiedTimes(int timeBlock)
+    {
+        occupiedTimes.Add(timeBlock);
+    }
+
     public void AddNewEvent()
     {
         bool invalidTimes = true;
@@ -159,20 +231,44 @@ class Day
             string[] timeSplit = rawStartTime.Split(":");
             int hours = int.Parse(timeSplit[0]);
             int minutes;
-            if (int.Parse(timeSplit[1]) < 15) {minutes = 0;}
-            else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30) {minutes = 1;}
-            else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45) {minutes = 2;}
-            else {minutes = 3;}
+            if (int.Parse(timeSplit[1]) < 15)
+            {
+                minutes = 0;
+            }
+            else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30)
+            {
+                minutes = 1;
+            }
+            else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45)
+            {
+                minutes = 2;
+            }
+            else
+            {
+                minutes = 3;
+            }
             startTimeBlock = 4*hours + minutes;
 
             Console.Write("Please select an end time (eg 17:15): ");
             rawStartTime = Console.ReadLine();
             timeSplit = rawStartTime.Split(":");
             hours = int.Parse(timeSplit[0]);
-            if (int.Parse(timeSplit[1]) < 15) {minutes = 0;}
-            else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30) {minutes = 1;}
-            else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45) {minutes = 2;}
-            else {minutes = 3;}
+            if (int.Parse(timeSplit[1]) < 15)
+            {
+                minutes = 0;
+            }
+            else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30)
+            {
+                minutes = 1;
+            }
+            else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45)
+            {
+                minutes = 2;
+            }
+            else
+            {
+                minutes = 3;
+            }
             endTimeBlock = 4*hours + minutes;
 
             // check to see if all the occupied time slots are free
@@ -203,17 +299,33 @@ class Day
         }
     }
 
-    public void CompleteTask()
+    public void CompleteTask(int today, List<RepeatedTask> repeatedTasks)
     {
+        int numNotRepeated = 0;
+
         System.Console.WriteLine("\nTasks:");
         for (int i=0; i<tasks.Count; i++)
         {
             Console.Write($"{i}. ");
-            tasks[i].Display();
+            tasks[i].Display(today);
+            numNotRepeated++;
         }
+        for (int i=0; i<repeatedTasks.Count; i++)
+        {
+            Console.Write($"{i}. ");
+            repeatedTasks[i].Display(today);
+        }
+
         System.Console.Write("\nPlease select a task to complete: ");
         int selected = int.Parse(Console.ReadLine());
-        tasks[selected].Complete();
+        if (selected < numNotRepeated)
+        {
+            tasks[selected].Complete(dayIdx);
+        }
+        else
+        {
+            repeatedTasks[selected - numNotRepeated].Complete(dayIdx);
+        }
     }
 
     public void AddNewFocusTime()
@@ -226,20 +338,44 @@ class Day
         string[] timeSplit = rawStartTime.Split(":");
         int hours = int.Parse(timeSplit[0]);
         int minutes;
-        if (int.Parse(timeSplit[1]) < 15) {minutes = 0;}
-        else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30) {minutes = 1;}
-        else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45) {minutes = 2;}
-        else {minutes = 3;}
+        if (int.Parse(timeSplit[1]) < 15)
+        {
+            minutes = 0;
+        }
+        else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30)
+        {
+            minutes = 1;
+        }
+        else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45)
+        {
+            minutes = 2;
+        }
+        else
+        {
+            minutes = 3;
+        }
         startTimeBlock = 4*hours + minutes;
 
         Console.Write("Please select an end time (eg 17:15): ");
         rawStartTime = Console.ReadLine();
         timeSplit = rawStartTime.Split(":");
         hours = int.Parse(timeSplit[0]);
-        if (int.Parse(timeSplit[1]) < 15) {minutes = 0;}
-        else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30) {minutes = 1;}
-        else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45) {minutes = 2;}
-        else {minutes = 3;}
+        if (int.Parse(timeSplit[1]) < 15)
+        {
+            minutes = 0;
+        }
+        else if (int.Parse(timeSplit[1]) >= 15 && int.Parse(timeSplit[1]) < 30)
+        {
+            minutes = 1;
+        }
+        else if (int.Parse(timeSplit[1]) >= 30 && int.Parse(timeSplit[1]) < 45)
+        {
+            minutes = 2;
+        }
+        else
+        {
+            minutes = 3;
+        }
         endTimeBlock = 4*hours + minutes;
 
         focusTimes.Add(new FocusTime(startTimeBlock,endTimeBlock));

@@ -28,7 +28,7 @@ class FocusTime
         return name;
     }
 
-    public virtual void Display()
+    public void Display()
     {
         
     }

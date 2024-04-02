@@ -6,21 +6,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        /* TO DO:
-         fix display
-         add focus time functionality
-         repeated functionality
-         make today actually today (TimeDate)
-         upcoming and overdue tasks
-         multiple weeks display side-by-side?
-        */ 
-
         Week week = new Week();
-        int today = 3;
+        int today = (int)DateTime.Now.DayOfWeek;
         string choice;
 
         System.Console.WriteLine("Welcome to the calendar program! Your hub for all things productive!!! :D");
-
+        
         do
         {
             System.Console.WriteLine("-----------------------------------------");
@@ -28,8 +19,10 @@ class Program
             System.Console.WriteLine("1. Display schedule");
             System.Console.WriteLine("2. Add a new task");
             System.Console.WriteLine("3. Add a new event");
-            System.Console.WriteLine("4. Add a new focus time (WIP)");
-            System.Console.WriteLine("5. Complete a new task");
+            System.Console.WriteLine("4. Add a new focus time");
+            System.Console.WriteLine("5. Add a new repeated task");
+            System.Console.WriteLine("6. Add a new repeated event");
+            System.Console.WriteLine("7. Complete a task");
             System.Console.WriteLine("q: Quit");
             Console.Write("\nOption: ");
             choice = Console.ReadLine();
@@ -63,23 +56,52 @@ class Program
             }
             else if (choice == "2")
             {
-                Console.Write($"\nPlease select a day (today is {today}): ");
-                int dayChosen = int.Parse(Console.ReadLine());
-                week.AddTask(dayChosen);
+                Console.Write($"\nPlease select a day (type nothing for today, {today}): ");
+                string dayChosen = Console.ReadLine();
+                if (dayChosen == "")
+                {
+                    week.AddTask(today);
+                }
+                else
+                {
+                    week.AddTask(int.Parse(dayChosen));
+                }
             }
             else if (choice == "3")
             {
-                Console.Write($"\nPlease select a day (today is {today}): ");
-                int dayChosen = int.Parse(Console.ReadLine());
-                week.AddEvent(dayChosen);
+                Console.Write($"\nPlease select a day (type nothing for today, {today}): ");
+                string dayChosen = Console.ReadLine();
+                if (dayChosen == "")
+                {
+                    week.AddEvent(today);
+                }
+                else
+                {
+                    week.AddEvent(int.Parse(dayChosen));
+                }
             }
             else if (choice == "4")
             {
-                Console.Write($"\nPlease select a day (today is {today}): ");
-                int dayChosen = int.Parse(Console.ReadLine());
-                week.AddFocusTime(dayChosen);
+                Console.Write($"\nPlease select a day (type nothing for today, {today}): ");
+                string dayChosen = Console.ReadLine();
+                if (dayChosen == "")
+                {
+                    week.AddFocusTime(today);
+                }
+                else
+                {
+                    week.AddFocusTime(int.Parse(dayChosen));
+                }
             }
             else if (choice == "5")
+            {
+                week.AddRepeatedTask();
+            }
+            else if (choice == "6")
+            {
+                week.AddRepeatedEvent();
+            }
+            else if (choice == "7")
             {
                 week.CompleteTasks(today);
             }
