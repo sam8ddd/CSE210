@@ -27,9 +27,4 @@ class FocusTime
     {
         return name;
     }
-
-    public void Display()
-    {
-        
-    }
 }
