@@ -53,7 +53,6 @@ class Day
                 {
                     activeFocusTime = true;
                     activeFocusTimeId = focus;
-                    wasOccupied = true;
                 }
                 else
                 {
@@ -134,11 +133,11 @@ class Day
                     System.Console.Write("\n");
                 }
             }
-            else if (i%4==0 && !wasOccupied)
+            else if (i%4==0 && !wasOccupied && !activeFocusTime)
             {
                 Console.WriteLine(" -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -");
             }
-            else if(!wasOccupied)
+            else if (!wasOccupied)
             {
                 Console.Write("\n");
             }
